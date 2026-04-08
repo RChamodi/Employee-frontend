@@ -1,24 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+// App.jsx
+import React from "react";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "./theme";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"; 
+import Sidebar from "./components/Sidebar";
+import Dashboard from "./pages/Dashboard";
+import SkillManager from "./pages/SkillManager";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider theme={theme}>
+    <BrowserRouter>
+    <ToastContainer />
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        <Sidebar />
+        <div style={{ flex: 1, padding: 20 }}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/admin/dashboard" />} />
+            <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="/admin/employees" element={<Dashboard />} />
+            <Route path="/admin/skills" element={<SkillManager />} />
+          </Routes>
+        </div>
+      </div>
+    </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
