@@ -7,9 +7,16 @@ import {
     Box,
     Typography
 } from "@mui/material";
-import validator from "validator";
+import { z } from "zod";
 import { createEmployee, updateEmployee, getSkills } from "../api/employeeApi";
 import { toast } from "react-toastify";
+
+const employeeSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().min(1, "Email is required").email("Invalid email format"),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    skillIds: z.array(z.number()).min(1, "Select at least one skill")
+});
 
 function EmployeeForm({ selectedEmployee, refresh, clearSelection }) {
 
@@ -61,54 +68,46 @@ function EmployeeForm({ selectedEmployee, refresh, clearSelection }) {
         }
     };
 
-    const handleSubmit = async (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let tempErrors = {};
+    const result = employeeSchema.safeParse(form);
 
-    if (!form.name.trim()) {
-        tempErrors.name = "Name is required";
-    }
+    if (!result.success) {
+        const fieldErrors = {};
 
-    if (!form.email.trim()) {
-        tempErrors.email = "Email is required";
-    } else if (!validator.isEmail(form.email)) {
-        tempErrors.email = "Invalid email format";
-    }
+        result.error.issues.forEach(err => {
+            fieldErrors[err.path[0]] = err.message;
+        });
 
-    if (!form.dateOfBirth) {
-        tempErrors.dateOfBirth = "Date of birth is required";
-    }
-
-    if (form.skillIds.length === 0) {
-        tempErrors.skillIds = "Select at least one skill";
-    }
-
-    if (Object.keys(tempErrors).length > 0) {
-        setErrors(tempErrors);
+        setErrors(fieldErrors);
         return;
     }
 
-    setErrors({}); 
+    setErrors({});
 
-    
-    if (selectedEmployee) {
-        await updateEmployee(selectedEmployee.id, form);
-        toast.success("Employee updated successfully!");
-    } else {
-        await createEmployee(form);
-        toast.success("Employee added successfully!");
+    try {
+        if (selectedEmployee) {
+            await updateEmployee(selectedEmployee.id, form);
+            toast.success("Employee updated successfully!");
+        } else {
+            await createEmployee(form);
+            toast.success("Employee added successfully!");
+        }
+
+        refresh();
+        clearSelection();
+
+        setForm({
+            name: "",
+            email: "",
+            dateOfBirth: "",
+            skillIds: []
+        });
+
+    } catch (err) {
+        toast.error("Something went wrong!");
     }
-
-    refresh();
-    clearSelection();
-
-    setForm({
-        name: "",
-        email: "",
-        dateOfBirth: "",
-        skillIds: []
-    });
 };
 
     return (
