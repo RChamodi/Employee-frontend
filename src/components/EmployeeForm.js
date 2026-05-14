@@ -12,10 +12,32 @@ import { createEmployee, updateEmployee, getSkills } from "../api/employeeApi";
 import { toast } from "react-toastify";
 
 const employeeSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().min(1, "Email is required").email("Invalid email format"),
-    dateOfBirth: z.string().min(1, "Date of birth is required"),
-    skillIds: z.array(z.number()).min(1, "Select at least one skill")
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .regex(/^[A-Za-z\s]+$/, "Name must contain letters only"),
+
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Invalid email format"),
+
+  dateOfBirth: z
+    .string()
+    .min(1, "Date of birth is required")
+    .refine((date) => {
+      const inputDate = new Date(date);
+      const today = new Date();
+
+      // remove time portion for accurate comparison
+      today.setHours(0, 0, 0, 0);
+
+      return inputDate <= today;
+    }, "Date of birth cannot be a future date"),
+
+  skillIds: z
+    .array(z.number())
+    .min(1, "Select at least one skill"),
 });
 
 function EmployeeForm({ selectedEmployee, refresh, clearSelection }) {

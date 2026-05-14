@@ -49,10 +49,20 @@ function SkillManager() {
   };
 
   const deleteSkill = async (id) => {
-    await axios.delete(`https://localhost:7200/api/skills/${id}`);
-    toast.success("Skill deleted successfully!");
+  try {
+    const response = await axios.delete(
+      `https://localhost:7200/api/skills/${id}`
+    );
+
+    toast.success(response.data.message);
+
     loadSkills();
-  };
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message || "Failed to delete skill"
+    );
+  }
+};
 
   return (
     <Paper
